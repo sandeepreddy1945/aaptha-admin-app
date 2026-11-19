@@ -1,8 +1,10 @@
 import { Geist_Mono, Inter } from "next/font/google"
 
 import "./globals.css"
+import { FirebaseUIRootProvider } from "@/components/firebase-ui-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/auth-provider"
+import { ChatbotLauncher } from "@/features/chatbot/components/chatbot-launcher"
 import { cn } from "@/lib/utils"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
@@ -30,7 +32,12 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <FirebaseUIRootProvider>
+              {children}
+              <ChatbotLauncher />
+            </FirebaseUIRootProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

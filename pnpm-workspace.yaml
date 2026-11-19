@@ -6,3 +6,7 @@ allowBuilds:
   msw: false
   '@firebase/util': true
   protobufjs: true
+
+permissions:
+  '@tanstack/react-table':
+    skills: true

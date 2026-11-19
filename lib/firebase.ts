@@ -1,4 +1,4 @@
-import { getApp, getApps, initializeApp } from "firebase/app"
+import { getApps, initializeApp } from "firebase/app"
 import { getAuth } from "firebase/auth"
 
 function getFirebaseConfig() {
@@ -30,8 +30,11 @@ function getFirebaseConfig() {
   return config
 }
 
+export function getFirebaseApp() {
+  const existingApp = getApps().find((app) => app.name === "[DEFAULT]")
+  return existingApp ?? initializeApp(getFirebaseConfig())
+}
+
 export function getFirebaseAuth() {
-  const app =
-    getApps().length > 0 ? getApp() : initializeApp(getFirebaseConfig())
-  return getAuth(app)
+  return getAuth(getFirebaseApp())
 }

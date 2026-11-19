@@ -10,9 +10,9 @@ import { getAuth } from "firebase-admin/auth"
 
 const ADMIN_APP_NAME = "aaptha-admin"
 
-export function getFirebaseAdminAuth() {
+export function getFirebaseAdminApp() {
   const existingApp = getApps().find((app) => app.name === ADMIN_APP_NAME)
-  if (existingApp) return getAuth(existingApp)
+  if (existingApp) return existingApp
 
   const projectId = process.env.FIREBASE_PROJECT_ID
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL
@@ -29,13 +29,15 @@ export function getFirebaseAdminAuth() {
       ? cert({ projectId, clientEmail, privateKey })
       : applicationDefault()
 
-  const app = initializeApp(
+  return initializeApp(
     {
       credential,
       ...(projectId ? { projectId } : {}),
     },
     ADMIN_APP_NAME
   )
+}
 
-  return getAuth(app)
+export function getFirebaseAdminAuth() {
+  return getAuth(getFirebaseAdminApp())
 }
