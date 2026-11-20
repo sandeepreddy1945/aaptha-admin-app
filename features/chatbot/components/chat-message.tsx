@@ -7,8 +7,8 @@ import {
   BotIcon,
   BrainCircuitIcon,
   FileTextIcon,
-  UserRoundIcon,
   WrenchIcon,
+  User
 } from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -85,7 +85,7 @@ export function ChatMessage({
           }
         >
           {isUser ? (
-            <UserRoundIcon aria-hidden="true" />
+            <User aria-hidden="true" />
           ) : (
             <BotIcon aria-hidden="true" />
           )}

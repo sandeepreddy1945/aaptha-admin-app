@@ -13,12 +13,16 @@ export const CHAT_SUGGESTIONS = [
 
 export type ChatEmptyStateProps = {
   compact?: boolean
+  description?: string
   onSuggestion: (suggestion: string) => void
+  suggestions?: string[]
 }
 
 export function ChatEmptyState({
   compact = false,
+  description = "Welcome to Aaptha Elder Care. Ask a question and I’ll help you find the information you need.",
   onSuggestion,
+  suggestions = CHAT_SUGGESTIONS,
 }: ChatEmptyStateProps) {
   return (
     <div className="flex min-h-full items-center justify-center py-16">
@@ -31,15 +35,14 @@ export function ChatEmptyState({
             What can I help you explore?
           </h2>
           <p className="max-w-lg text-sm leading-relaxed text-muted-foreground">
-            Welcome to Aaptha Elder Care. Ask a question and I’ll help you find
-            the information you need.
+            {description}
           </p>
         </div>
 
         <div
           className={`grid w-full gap-2 ${compact ? "grid-cols-1" : "sm:grid-cols-2 lg:grid-cols-4"}`}
         >
-          {CHAT_SUGGESTIONS.map((suggestion, index) => (
+          {suggestions.map((suggestion, index) => (
             <Button
               className={
                 compact

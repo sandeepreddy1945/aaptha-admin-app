@@ -18,6 +18,7 @@ import {
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { useAuth } from "@/components/auth-provider"
+import { useRemoteConfig } from "@/components/remote-config-provider"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -151,6 +152,7 @@ function getErrorMessage(error: unknown) {
 
 export default function ProfilePage() {
   const { user } = useAuth()
+  const { profileDescription } = useRemoteConfig()
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -310,10 +312,7 @@ export default function ProfilePage() {
               <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
               <ShieldCheckIcon className="size-5 text-muted-foreground" />
             </div>
-            <p className="text-sm text-muted-foreground">
-              Update your personal and contact details. Employee ID and Aadhaar
-              are read-only.
-            </p>
+            <p className="text-sm text-muted-foreground">{profileDescription}</p>
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit(saveProfile)}>

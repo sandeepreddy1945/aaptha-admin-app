@@ -4,6 +4,7 @@ import "./globals.css"
 import { FirebaseUIRootProvider } from "@/components/firebase-ui-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/auth-provider"
+import { RemoteConfigProvider } from "@/components/remote-config-provider"
 import { ChatbotLauncher } from "@/features/chatbot/components/chatbot-launcher"
 import { cn } from "@/lib/utils"
 
@@ -32,12 +33,14 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          <AuthProvider>
-            <FirebaseUIRootProvider>
-              {children}
-              <ChatbotLauncher />
-            </FirebaseUIRootProvider>
-          </AuthProvider>
+          <RemoteConfigProvider>
+            <AuthProvider>
+              <FirebaseUIRootProvider>
+                {children}
+                <ChatbotLauncher />
+              </FirebaseUIRootProvider>
+            </AuthProvider>
+          </RemoteConfigProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -2,6 +2,7 @@
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { useAuth } from "@/components/auth-provider"
+import { useRemoteConfig } from "@/components/remote-config-provider"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -52,6 +53,11 @@ function getProviderName(providerId?: string) {
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const {
+    dashboardBrand,
+    dashboardDescription,
+    organizationDescription,
+  } = useRemoteConfig()
   const name =
     user?.displayName?.trim() || user?.email?.split("@")[0] || "there"
   const email = user?.email ?? "Email unavailable"
@@ -89,14 +95,13 @@ export default function DashboardPage() {
                 </Badge>
                 <div className="space-y-2">
                   <p className="text-sm text-primary-foreground/75">
-                    Aaptha Admin
+                    {dashboardBrand}
                   </p>
                   <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
                     Welcome back, {name}
                   </h1>
                   <p className="max-w-xl text-sm text-primary-foreground/75 md:text-base">
-                    Your account is signed in and ready. Review your profile and
-                    authentication details below.
+                    {organizationDescription || dashboardDescription}
                   </p>
                 </div>
               </CardContent>
@@ -105,9 +110,7 @@ export default function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Your profile</CardTitle>
-                <CardDescription>
-                  Details from your signed-in Firebase account.
-                </CardDescription>
+                <CardDescription>Details from your signed-in Firebase account.</CardDescription>
               </CardHeader>
               <CardContent className="flex min-w-0 items-center gap-4">
                 <Avatar size="lg" className="size-14">

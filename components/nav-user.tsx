@@ -1,8 +1,8 @@
 "use client"
 
 import { signOut } from "firebase/auth"
-import { ChevronsUpDownIcon, LogOutIcon, UserRoundIcon } from "lucide-react"
-import { useState } from "react"
+import { ChevronsUpDownIcon, BellIcon, LogOutIcon, UserRoundIcon } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import type { User } from "firebase/auth"
 
@@ -22,6 +22,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useAuth } from "@/components/auth-provider"
 import { getFirebaseAuth } from "@/lib/firebase"
 
 function getInitials(name: string) {
@@ -36,13 +37,53 @@ function getInitials(name: string) {
 }
 
 export function NavUser({ user }: { user: User }) {
+  const { isAdmin } = useAuth()
   const { isMobile } = useSidebar()
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [logoutError, setLogoutError] = useState<string | null>(null)
+  const [pendingCount, setPendingCount] = useState(0)
   const name = user.displayName?.trim() || user.email?.split("@")[0] || "User"
   const email = user.email ?? "Email unavailable"
   const initials = getInitials(name)
+
+  useEffect(() => {
+    if (!isAdmin) return
+
+    let isActive = true
+    const loadPendingCount = async () => {
+      try {
+        const response = await fetch(
+          "/api/admin/registration-requests?countOnly=true",
+          { cache: "no-store" },
+        )
+        if (!response.ok) return
+        const payload: unknown = await response.json().catch(() => null)
+        if (
+          isActive &&
+          typeof payload === "object" &&
+          payload !== null &&
+          "count" in payload &&
+          typeof payload.count === "number"
+        ) {
+          setPendingCount(payload.count)
+        }
+      } catch {
+        // Keep the last known notification count if the endpoint is unavailable.
+      }
+    }
+    const refreshCount = () => void loadPendingCount()
+
+    void loadPendingCount()
+    const interval = window.setInterval(refreshCount, 30_000)
+    window.addEventListener("registration-requests-updated", refreshCount)
+
+    return () => {
+      isActive = false
+      window.clearInterval(interval)
+      window.removeEventListener("registration-requests-updated", refreshCount)
+    }
+  }, [isAdmin])
 
   async function handleLogout() {
     setIsLoggingOut(true)
@@ -73,10 +114,21 @@ export function NavUser({ user }: { user: User }) {
                 />
               }
             >
-              <Avatar>
-                <AvatarImage src={user.photoURL ?? undefined} alt={name} />
-                <AvatarFallback>{initials}</AvatarFallback>
-              </Avatar>
+              <div className="relative shrink-0">
+                <Avatar>
+                  <AvatarImage src={user.photoURL ?? undefined} alt={name} />
+                  <AvatarFallback>{initials}</AvatarFallback>
+                </Avatar>
+                {isAdmin && pendingCount > 0 && (
+                  <span
+                    aria-label={`${pendingCount} pending registration notifications`}
+                    className="absolute -top-1 -right-1 flex min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] leading-5 font-semibold text-destructive-foreground"
+                    role="status"
+                  >
+                    {pendingCount > 99 ? "99+" : pendingCount}
+                  </span>
+                )}
+              </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{name}</span>
                 <span className="truncate text-xs text-muted-foreground">
@@ -114,6 +166,17 @@ export function NavUser({ user }: { user: User }) {
                 <UserRoundIcon />
                 Profile
               </DropdownMenuItem>
+              {isAdmin && (
+                <DropdownMenuItem onClick={() => router.push("/notifications")}>
+                  <BellIcon />
+                  Notifications
+                  {pendingCount > 0 && (
+                    <span className="ml-auto rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-semibold text-destructive-foreground">
+                      {pendingCount > 99 ? "99+" : pendingCount}
+                    </span>
+                  )}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 disabled={isLoggingOut}

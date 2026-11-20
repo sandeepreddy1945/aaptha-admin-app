@@ -13,13 +13,22 @@ import {
 
 import { getFirebaseAuth } from "@/lib/firebase"
 
+export type RegistrationStatus = "pending" | "approved" | "rejected"
+
 type AuthContextValue = {
   authError: string | null
+  hasRequiredRole: boolean
+  isAdmin: boolean
   loading: boolean
+  registrationStatus: RegistrationStatus | null
   user: User | null
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
+
+function isRegistrationStatus(value: unknown): value is RegistrationStatus {
+  return value === "pending" || value === "approved" || value === "rejected"
+}
 
 function getLoginDestination() {
   const next = new URLSearchParams(window.location.search).get("next")
@@ -39,9 +48,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [authError, setAuthError] = useState<string | null>(null)
+  const [hasRequiredRole, setHasRequiredRole] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [registrationStatus, setRegistrationStatus] =
+    useState<RegistrationStatus | null>(null)
   const pathname = usePathname()
   const router = useRouter()
   const isLoginPage = pathname === "/login"
+  const isRegistrationPage = pathname === "/registration-pending"
+  const isAccessDeniedPage = pathname === "/access-denied"
 
   useEffect(() => {
     let isActive = true
@@ -59,6 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (!authenticatedUser) {
               setUser(null)
+              setHasRequiredRole(false)
+              setIsAdmin(false)
+              setRegistrationStatus(null)
               setAuthError(null)
               void fetch("/api/auth/session", { method: "DELETE" })
                 .catch(() => undefined)
@@ -67,6 +85,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 })
               return
             }
+
+            setLoading(true)
+            setHasRequiredRole(false)
+            setIsAdmin(false)
+            setRegistrationStatus(null)
 
             try {
               const idToken = await authenticatedUser.getIdToken()
@@ -87,7 +110,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 throw new Error(message)
               }
 
+              const registrationResponse = await fetch(
+                "/api/auth/registration-request",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ action: "ensure" }),
+                },
+              )
+              const registrationPayload: unknown = await registrationResponse
+                .json()
+                .catch(() => null)
+              if (!registrationResponse.ok) {
+                const message =
+                  typeof registrationPayload === "object" &&
+                  registrationPayload !== null &&
+                  "error" in registrationPayload
+                    ? String(registrationPayload.error)
+                    : "Unable to check the account approval status."
+                throw new Error(message)
+              }
+              if (
+                typeof registrationPayload !== "object" ||
+                registrationPayload === null ||
+                !("status" in registrationPayload) ||
+                !isRegistrationStatus(registrationPayload.status)
+              ) {
+                throw new Error("Unable to check the account approval status.")
+              }
+
               if (!isActive) return
+              setHasRequiredRole(
+                "hasRequiredRole" in registrationPayload &&
+                  registrationPayload.hasRequiredRole === true,
+              )
+              setIsAdmin(
+                "isAdmin" in registrationPayload &&
+                  registrationPayload.isAdmin === true,
+              )
+              setRegistrationStatus(registrationPayload.status)
               setUser(authenticatedUser)
               setAuthError(null)
               setLoading(false)
@@ -95,6 +156,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               if (!isActive) return
 
               setUser(null)
+              setHasRequiredRole(false)
+              setIsAdmin(false)
+              setRegistrationStatus(null)
               setAuthError(
                 error instanceof Error
                   ? error.message
@@ -105,6 +169,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           },
           (error: Error) => {
             setUser(null)
+            setHasRequiredRole(false)
+            setIsAdmin(false)
+            setRegistrationStatus(null)
             setAuthError(error.message)
             setLoading(false)
           }
@@ -114,6 +181,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!isActive) return
 
         setUser(null)
+        setHasRequiredRole(false)
+        setIsAdmin(false)
+        setRegistrationStatus(null)
         setAuthError(
           error instanceof Error
             ? error.message
@@ -132,7 +202,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (loading) return
 
     if (isLoginPage) {
-      if (user) router.replace(getLoginDestination())
+      if (user) {
+        router.replace(
+          registrationStatus !== "approved"
+            ? "/registration-pending"
+            : hasRequiredRole
+              ? getLoginDestination()
+              : "/access-denied",
+        )
+      }
       return
     }
 
@@ -143,17 +221,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ? ""
           : `?next=${encodeURIComponent(requestedPath)}`
       router.replace(`/login${next}`)
+      return
     }
-  }, [isLoginPage, loading, pathname, router, user])
+
+    if (isRegistrationPage) {
+      if (registrationStatus === "approved") {
+        router.replace(hasRequiredRole ? "/dashboard" : "/access-denied")
+      }
+      return
+    }
+
+    if (isAccessDeniedPage) {
+      if (registrationStatus !== "approved") {
+        router.replace("/registration-pending")
+      } else if (hasRequiredRole) {
+        router.replace("/dashboard")
+      }
+      return
+    }
+
+    if (registrationStatus !== "approved") {
+      router.replace("/registration-pending")
+      return
+    }
+
+    if (!hasRequiredRole) {
+      router.replace("/access-denied")
+      return
+    }
+
+    if (pathname === "/notifications" && !isAdmin) {
+      router.replace("/dashboard")
+    }
+  }, [
+    hasRequiredRole,
+    isAccessDeniedPage,
+    isAdmin,
+    isLoginPage,
+    isRegistrationPage,
+    loading,
+    pathname,
+    registrationStatus,
+    router,
+    user,
+  ])
 
   const contextValue = useMemo(
-    () => ({ authError, loading, user }),
-    [authError, loading, user]
+    () => ({ authError, hasRequiredRole, isAdmin, loading, registrationStatus, user }),
+    [authError, hasRequiredRole, isAdmin, loading, registrationStatus, user],
+  )
+  const canRenderAuthenticatedPage = Boolean(
+    user &&
+      ((registrationStatus === "approved" && hasRequiredRole) ||
+        isRegistrationPage ||
+        isAccessDeniedPage),
   )
 
   return (
     <AuthContext.Provider value={contextValue}>
-      {!loading && (isLoginPage || user) ? (
+      {!loading && (isLoginPage || canRenderAuthenticatedPage) ? (
         children
       ) : (
         <div

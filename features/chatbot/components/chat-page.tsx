@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Shimmer } from "@/components/ui/shimmer"
 import { useAuth } from "@/components/auth-provider"
+import { useRemoteConfig } from "@/components/remote-config-provider"
 import {
   createConversationId,
   loadLatestConversation,
@@ -58,6 +59,11 @@ function ChatSession({
   compact: boolean
   onClose?: () => void
 }) {
+  const {
+    chatbotInitialQuestions,
+    chatbotTitle,
+    chatbotWelcomeDescription,
+  } = useRemoteConfig()
   const [models, setModels] = useState<ChatModelOption[]>([])
   const [selectedModel, setSelectedModel] = useState("")
   const [developerToolsEnabled, setDeveloperToolsEnabled] = useState(true)
@@ -276,7 +282,7 @@ function ChatSession({
           )}
           <div className="min-w-0">
             <h1 className="truncate text-sm font-semibold sm:text-base" id="aaptha-chat-title">
-              Ask Aaptha Elder Care
+              {chatbotTitle}
             </h1>
             <p className="truncate text-xs text-muted-foreground">
               {modelName ? `${modelName} · Ollama` : "Ollama model not configured"}
@@ -331,7 +337,9 @@ function ChatSession({
           {messages.length === 0 ? (
             <ChatEmptyState
               compact={compact}
+              description={chatbotWelcomeDescription}
               onSuggestion={(suggestion) => void sendText(suggestion)}
+              suggestions={chatbotInitialQuestions}
             />
           ) : (
             <div className="space-y-6 py-8">

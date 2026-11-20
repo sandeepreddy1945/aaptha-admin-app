@@ -7,6 +7,7 @@ import { NavMain } from "@/components/nav-main"
 import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import { useAuth } from "@/components/auth-provider"
+import { useRemoteConfig } from "@/components/remote-config-provider"
 import {
   Sidebar,
   SidebarContent,
@@ -124,6 +125,7 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
+  const { organizationName } = useRemoteConfig()
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -133,12 +135,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton
               render={<Link href="/dashboard" />}
               size="lg"
-              tooltip="Aaptha"
+              tooltip={organizationName}
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                 <GalleryVerticalEndIcon />
               </div>
-              <span className="truncate text-sm font-semibold">Aaptha</span>
+              <span className="truncate text-sm font-semibold">{organizationName}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

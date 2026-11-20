@@ -2,9 +2,11 @@
 
 import {
   GoogleAuthProvider,
+  createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
+  updateProfile,
 } from "firebase/auth"
 import { useState, type FormEvent } from "react"
 
@@ -19,6 +21,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/auth-provider"
+import { useRemoteConfig } from "@/components/remote-config-provider"
 import { getFirebaseAuth } from "@/lib/firebase"
 
 function getErrorMessage(error: unknown) {
@@ -51,8 +54,11 @@ function getErrorMessage(error: unknown) {
 
 export function LoginForm(props: React.ComponentProps<"div">) {
   const { authError } = useAuth()
+  const { organizationFullName, organizationDescription } = useRemoteConfig()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [displayName, setDisplayName] = useState("")
+  const [isRegistering, setIsRegistering] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -67,6 +73,45 @@ export function LoginForm(props: React.ComponentProps<"div">) {
       await signInWithEmailAndPassword(getFirebaseAuth(), email, password)
     } catch (signInError) {
       setError(getErrorMessage(signInError))
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function handleEmailRegistration(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setIsLoading(true)
+    setError(null)
+    setNotice(null)
+
+    try {
+      const credential = await createUserWithEmailAndPassword(
+        getFirebaseAuth(),
+        email,
+        password,
+      )
+      await updateProfile(credential.user, { displayName: displayName.trim() })
+      const idToken = await credential.user.getIdToken(true)
+      const sessionResponse = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      })
+      if (!sessionResponse.ok) {
+        throw new Error("Unable to establish a secure session for this request.")
+      }
+
+      const requestResponse = await fetch("/api/auth/registration-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "ensure" }),
+      })
+      if (!requestResponse.ok) {
+        throw new Error("Unable to submit your access request.")
+      }
+      setNotice("Your access request was sent for administrator approval.")
+    } catch (registrationError) {
+      setError(getErrorMessage(registrationError))
     } finally {
       setIsLoading(false)
     }
@@ -107,14 +152,38 @@ export function LoginForm(props: React.ComponentProps<"div">) {
     <div className="flex flex-col gap-6" {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8" onSubmit={handleEmailLogin}>
+          <form
+            className="p-6 md:p-8"
+            onSubmit={isRegistering ? handleEmailRegistration : handleEmailLogin}
+          >
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
-                <h1 className="text-2xl font-bold">Welcome back</h1>
+                <h1 className="text-2xl font-bold">
+                  {isRegistering ? "Request access" : "Welcome back"}
+                </h1>
                 <p className="text-balance text-muted-foreground">
-                  Sign in to your account
+                  {isRegistering
+                    ? `Create an account for ${organizationFullName}`
+                    : "Sign in to your account"}
                 </p>
+                {organizationDescription && (
+                  <p className="text-balance text-sm text-muted-foreground">
+                    {organizationDescription}
+                  </p>
+                )}
               </div>
+              {isRegistering && (
+                <Field>
+                  <FieldLabel htmlFor="display-name">Full name</FieldLabel>
+                  <Input
+                    autoComplete="name"
+                    id="display-name"
+                    onChange={(event) => setDisplayName(event.target.value)}
+                    required
+                    value={displayName}
+                  />
+                </Field>
+              )}
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
@@ -139,8 +208,9 @@ export function LoginForm(props: React.ComponentProps<"div">) {
                   </button>
                 </div>
                 <Input
-                  autoComplete="current-password"
+                  autoComplete={isRegistering ? "new-password" : "current-password"}
                   id="password"
+                  minLength={isRegistering ? 6 : undefined}
                   onChange={(event) => setPassword(event.target.value)}
                   required
                   type="password"
@@ -159,7 +229,13 @@ export function LoginForm(props: React.ComponentProps<"div">) {
               )}
               <Field>
                 <Button disabled={isLoading} type="submit">
-                  {isLoading ? "Signing in…" : "Login"}
+                  {isLoading
+                    ? isRegistering
+                      ? "Creating account…"
+                      : "Signing in…"
+                    : isRegistering
+                      ? "Create account and request access"
+                      : "Login"}
                 </Button>
               </Field>
               <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
@@ -201,7 +277,18 @@ export function LoginForm(props: React.ComponentProps<"div">) {
                 </Button>
               </Field>
               <FieldDescription className="text-center">
-                Need an account? Contact your administrator.
+                {isRegistering ? "Already have an account?" : "Need an account?"}{" "}
+                <button
+                  className="underline underline-offset-4 hover:text-foreground"
+                  onClick={() => {
+                    setIsRegistering((current) => !current)
+                    setError(null)
+                    setNotice(null)
+                  }}
+                  type="button"
+                >
+                  {isRegistering ? "Sign in" : "Create one to request access"}
+                </button>
               </FieldDescription>
             </FieldGroup>
           </form>

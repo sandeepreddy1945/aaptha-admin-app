@@ -16,5 +16,8 @@
         "supportEmail": "support@aaptha-mob-app.firebaseapp.com"
       }
     }
+  },
+  "database": {
+    "rules": "database.rules.json"
   }
 }
