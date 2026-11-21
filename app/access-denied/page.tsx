@@ -34,11 +34,17 @@ export default function AccessDeniedPage() {
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold">Access not permitted</h1>
           <p className="text-sm text-muted-foreground">
-            Your account doesn’t have the necessary permissions to use this application. Contact an administrator if you believe this is a mistake.
+            Your account doesn’t have the necessary permissions to use this
+            application. Contact an administrator if you believe this is a
+            mistake.
           </p>
           {user?.email && <p className="text-sm font-medium">{user.email}</p>}
         </div>
-        <Button disabled={isSigningOut} onClick={() => void handleSignOut()} type="button">
+        <Button
+          disabled={isSigningOut}
+          onClick={() => void handleSignOut()}
+          type="button"
+        >
           {isSigningOut ? "Signing out…" : "Sign out"}
         </Button>
         {error && (

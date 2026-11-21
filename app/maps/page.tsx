@@ -4,7 +4,7 @@ import {
   MarkerContent,
   MarkerPopup,
   MarkerTooltip,
-} from "@/components/ui/map";
+} from "@/components/ui/map"
 
 const locations = [
   {
@@ -20,11 +20,11 @@ const locations = [
     lat: 40.7829,
   },
   { id: 3, name: "Times Square", lng: -73.9855, lat: 40.758 },
-];
+]
 
 export default function MarkersExample() {
   return (
-    <div className="h-[420px] w-full m-3">
+    <div className="m-3 h-[420px] w-full">
       <Map center={[-73.98, 40.76]} zoom={12}>
         {locations.map((location) => (
           <MapMarker
@@ -33,13 +33,13 @@ export default function MarkersExample() {
             latitude={location.lat}
           >
             <MarkerContent>
-              <div className="bg-primary size-4 rounded-full border-2 border-white shadow-lg" />
+              <div className="size-4 rounded-full border-2 border-white bg-primary shadow-lg" />
             </MarkerContent>
             <MarkerTooltip>{location.name}</MarkerTooltip>
             <MarkerPopup>
               <div className="space-y-1">
-                <p className="text-foreground font-medium">{location.name}</p>
-                <p className="text-muted-foreground text-xs">
+                <p className="font-medium text-foreground">{location.name}</p>
+                <p className="text-xs text-muted-foreground">
                   {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
                 </p>
               </div>
@@ -48,5 +48,5 @@ export default function MarkersExample() {
         ))}
       </Map>
     </div>
-  );
+  )
 }

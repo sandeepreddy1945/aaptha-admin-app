@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   if (!uid) {
     return NextResponse.json(
       { error: "Account approval is required to use chat." },
-      { status: 403 },
+      { status: 403 }
     )
   }
 

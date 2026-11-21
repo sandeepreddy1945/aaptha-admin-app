@@ -1,7 +1,12 @@
 "use client"
 
 import { signOut } from "firebase/auth"
-import { ChevronsUpDownIcon, BellIcon, LogOutIcon, UserRoundIcon } from "lucide-react"
+import {
+  ChevronsUpDownIcon,
+  BellIcon,
+  LogOutIcon,
+  UserRoundIcon,
+} from "lucide-react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import type { User } from "firebase/auth"
@@ -55,7 +60,7 @@ export function NavUser({ user }: { user: User }) {
       try {
         const response = await fetch(
           "/api/admin/registration-requests?countOnly=true",
-          { cache: "no-store" },
+          { cache: "no-store" }
         )
         if (!response.ok) return
         const payload: unknown = await response.json().catch(() => null)
@@ -122,7 +127,7 @@ export function NavUser({ user }: { user: User }) {
                 {isAdmin && pendingCount > 0 && (
                   <span
                     aria-label={`${pendingCount} pending registration notifications`}
-                    className="absolute -top-1 -right-1 flex min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] leading-5 font-semibold text-destructive-foreground"
+                    className="text-destructive-foreground absolute -top-1 -right-1 flex min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] leading-5 font-semibold"
                     role="status"
                   >
                     {pendingCount > 99 ? "99+" : pendingCount}
@@ -162,16 +167,20 @@ export function NavUser({ user }: { user: User }) {
                   </div>
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => router.push("/profile")}>
+              <DropdownMenuItem
+                onClick={() => router.push("/dashboard/profile")}
+              >
                 <UserRoundIcon />
                 Profile
               </DropdownMenuItem>
               {isAdmin && (
-                <DropdownMenuItem onClick={() => router.push("/notifications")}>
+                <DropdownMenuItem
+                  onClick={() => router.push("/dashboard/notifications")}
+                >
                   <BellIcon />
                   Notifications
                   {pendingCount > 0 && (
-                    <span className="ml-auto rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-semibold text-destructive-foreground">
+                    <span className="text-destructive-foreground ml-auto rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-semibold">
                       {pendingCount > 99 ? "99+" : pendingCount}
                     </span>
                   )}

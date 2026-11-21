@@ -42,8 +42,10 @@ type Action = "approve" | "reject"
 type AssignableRole = "admin" | "hr"
 
 const registrationTableFeatures = tableFeatures({})
-const registrationColumnHelper =
-  createColumnHelper<typeof registrationTableFeatures, RegistrationRequest>()
+const registrationColumnHelper = createColumnHelper<
+  typeof registrationTableFeatures,
+  RegistrationRequest
+>()
 
 function formatDate(value: string) {
   if (!value) return "—"
@@ -90,7 +92,7 @@ export function RegistrationRequestsTable() {
       setError(
         loadError instanceof Error
           ? loadError.message
-          : "Unable to load registration notifications.",
+          : "Unable to load registration notifications."
       )
     } finally {
       setIsLoading(false)
@@ -114,7 +116,9 @@ export function RegistrationRequestsTable() {
         registrationColumnHelper.accessor("displayName", {
           header: "Name",
           cell: ({ row }) =>
-            row.original.displayName || row.original.email || "Name unavailable",
+            row.original.displayName ||
+            row.original.email ||
+            "Name unavailable",
         }),
         registrationColumnHelper.accessor("email", {
           header: "Email",
@@ -139,7 +143,7 @@ export function RegistrationRequestsTable() {
           ),
         }),
       ]),
-    [handleView],
+    [handleView]
   )
   const table = useTable({
     features: registrationTableFeatures,
@@ -180,7 +184,9 @@ export function RegistrationRequestsTable() {
       }
 
       const employeeId =
-        typeof payload === "object" && payload !== null && "employeeId" in payload
+        typeof payload === "object" &&
+        payload !== null &&
+        "employeeId" in payload
           ? String(payload.employeeId ?? "")
           : ""
       setSelectedRequest(null)
@@ -188,7 +194,7 @@ export function RegistrationRequestsTable() {
       setNotice(
         nextAction === "approve"
           ? `${selectedRequest.displayName || selectedRequest.email} approved · ${assignedRoles.join(", ")} role${assignedRoles.length === 1 ? "" : "s"}${employeeId ? ` · Employee ID ${employeeId}` : ""}.`
-          : `${selectedRequest.displayName || selectedRequest.email} request rejected.`,
+          : `${selectedRequest.displayName || selectedRequest.email} request rejected.`
       )
       window.dispatchEvent(new Event("registration-requests-updated"))
       await loadRequests()
@@ -196,7 +202,7 @@ export function RegistrationRequestsTable() {
       setError(
         actionError instanceof Error
           ? actionError.message
-          : "Unable to update the registration request.",
+          : "Unable to update the registration request."
       )
     } finally {
       setAction(null)
@@ -208,7 +214,9 @@ export function RegistrationRequestsTable() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Registration notifications</h1>
-          <p className="text-sm text-muted-foreground">{notificationsDescription}</p>
+          <p className="text-sm text-muted-foreground">
+            {notificationsDescription}
+          </p>
         </div>
         <Button
           disabled={isLoading}
@@ -225,12 +233,18 @@ export function RegistrationRequestsTable() {
       </div>
 
       {notice && (
-        <p className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm" role="status">
+        <p
+          className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm"
+          role="status"
+        >
           {notice}
         </p>
       )}
       {error && (
-        <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
+        <p
+          className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          role="alert"
+        >
           {error}
         </p>
       )}
@@ -253,7 +267,10 @@ export function RegistrationRequestsTable() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell className="h-24 text-center" colSpan={columns.length}>
+                <TableCell
+                  className="h-24 text-center"
+                  colSpan={columns.length}
+                >
                   Loading registration requests…
                 </TableCell>
               </TableRow>
@@ -269,7 +286,10 @@ export function RegistrationRequestsTable() {
               ))
             ) : (
               <TableRow>
-                <TableCell className="h-24 text-center text-muted-foreground" colSpan={columns.length}>
+                <TableCell
+                  className="h-24 text-center text-muted-foreground"
+                  colSpan={columns.length}
+                >
                   No pending registration requests.
                 </TableCell>
               </TableRow>
@@ -295,30 +315,42 @@ export function RegistrationRequestsTable() {
               </DialogHeader>
               <dl className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-x-4 gap-y-3 text-sm">
                 <dt className="text-muted-foreground">Name</dt>
-                <dd className="wrap-break-word font-medium">
+                <dd className="font-medium wrap-break-word">
                   {selectedRequest.displayName || "Not provided"}
                 </dd>
                 <dt className="text-muted-foreground">Email</dt>
-                <dd className="break-all">{selectedRequest.email || "Not provided"}</dd>
+                <dd className="break-all">
+                  {selectedRequest.email || "Not provided"}
+                </dd>
                 <dt className="text-muted-foreground">Email verified</dt>
                 <dd>{selectedRequest.emailVerified ? "Yes" : "No"}</dd>
                 <dt className="text-muted-foreground">Phone</dt>
                 <dd>{selectedRequest.phoneNumber || "Not provided"}</dd>
                 <dt className="text-muted-foreground">Sign-in provider</dt>
-                <dd>{selectedRequest.providers.join(", ") || "Not available"}</dd>
+                <dd>
+                  {selectedRequest.providers.join(", ") || "Not available"}
+                </dd>
                 <dt className="text-muted-foreground">Requested</dt>
                 <dd>{formatDate(selectedRequest.requestedAt)}</dd>
                 <dt className="text-muted-foreground">Firebase UID</dt>
-                <dd className="break-all font-mono text-xs">{selectedRequest.uid}</dd>
+                <dd className="font-mono text-xs break-all">
+                  {selectedRequest.uid}
+                </dd>
               </dl>
               <fieldset className="space-y-2 rounded-md border p-3">
-                <legend className="px-1 text-sm font-medium">Assign access roles</legend>
+                <legend className="px-1 text-sm font-medium">
+                  Assign access roles
+                </legend>
                 <p className="text-xs text-muted-foreground">
-                  Select one or both roles. Only admin or HR accounts can access the application.
+                  Select one or both roles. Only admin or HR accounts can access
+                  the application.
                 </p>
                 <div className="flex flex-wrap gap-x-5 gap-y-2">
                   {(["hr", "admin"] as const).map((role) => (
-                    <label className="flex items-center gap-2 text-sm" key={role}>
+                    <label
+                      className="flex items-center gap-2 text-sm"
+                      key={role}
+                    >
                       <input
                         checked={selectedRoles.includes(role)}
                         className="size-4 accent-primary"
@@ -326,7 +358,9 @@ export function RegistrationRequestsTable() {
                           setSelectedRoles((current) =>
                             event.target.checked
                               ? [...current, role]
-                              : current.filter((selectedRole) => selectedRole !== role),
+                              : current.filter(
+                                  (selectedRole) => selectedRole !== role
+                                )
                           )
                           setError(null)
                         }}

@@ -9,7 +9,7 @@ const modelCatalogSchema = z.array(
       name: z.string().trim().min(1).max(120).optional(),
       description: z.string().trim().max(300).optional(),
     })
-    .strict(),
+    .strict()
 )
 
 export type ChatModelOption = {
@@ -39,7 +39,7 @@ export function getChatModelConfiguration(): ChatModelConfiguration {
     const parsedModels = modelCatalogSchema.safeParse(rawModels)
     if (!parsedModels.success || parsedModels.data.length === 0) {
       throw new Error(
-        "OLLAMA_MODELS must be a non-empty JSON array of model objects with an id.",
+        "OLLAMA_MODELS must be a non-empty JSON array of model objects with an id."
       )
     }
 
@@ -66,7 +66,9 @@ export function getChatModelConfiguration(): ChatModelConfiguration {
   }
 
   if (configuredDefault && !modelIds.has(configuredDefault)) {
-    throw new Error("OLLAMA_MODEL must match an id configured in OLLAMA_MODELS.")
+    throw new Error(
+      "OLLAMA_MODEL must match an id configured in OLLAMA_MODELS."
+    )
   }
 
   return {

@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ action: "ensure" }),
-                },
+                }
               )
               const registrationPayload: unknown = await registrationResponse
                 .json()
@@ -142,11 +142,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               if (!isActive) return
               setHasRequiredRole(
                 "hasRequiredRole" in registrationPayload &&
-                  registrationPayload.hasRequiredRole === true,
+                  registrationPayload.hasRequiredRole === true
               )
               setIsAdmin(
                 "isAdmin" in registrationPayload &&
-                  registrationPayload.isAdmin === true,
+                  registrationPayload.isAdmin === true
               )
               setRegistrationStatus(registrationPayload.status)
               setUser(authenticatedUser)
@@ -208,7 +208,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             ? "/registration-pending"
             : hasRequiredRole
               ? getLoginDestination()
-              : "/access-denied",
+              : "/access-denied"
         )
       }
       return
@@ -250,7 +250,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    if (pathname === "/notifications" && !isAdmin) {
+    if (
+      (pathname === "/notifications" ||
+        pathname.startsWith("/dashboard/notifications")) &&
+      !isAdmin
+    ) {
       router.replace("/dashboard")
     }
   }, [
@@ -267,14 +271,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   ])
 
   const contextValue = useMemo(
-    () => ({ authError, hasRequiredRole, isAdmin, loading, registrationStatus, user }),
-    [authError, hasRequiredRole, isAdmin, loading, registrationStatus, user],
+    () => ({
+      authError,
+      hasRequiredRole,
+      isAdmin,
+      loading,
+      registrationStatus,
+      user,
+    }),
+    [authError, hasRequiredRole, isAdmin, loading, registrationStatus, user]
   )
   const canRenderAuthenticatedPage = Boolean(
     user &&
-      ((registrationStatus === "approved" && hasRequiredRole) ||
-        isRegistrationPage ||
-        isAccessDeniedPage),
+    ((registrationStatus === "approved" && hasRequiredRole) ||
+      isRegistrationPage ||
+      isAccessDeniedPage)
   )
 
   return (

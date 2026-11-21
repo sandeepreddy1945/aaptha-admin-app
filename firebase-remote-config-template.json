@@ -1,0 +1,89 @@
+{
+  "conditions": [],
+  "parameters": {
+    "organization_name": {
+      "defaultValue": {
+        "value": "Aaptha"
+      },
+      "description": "Organization name shown in app branding.",
+      "valueType": "STRING"
+    },
+    "organization_description": {
+      "defaultValue": {
+        "value": ""
+      },
+      "description": "Organization description shown in the dashboard and sign-in experience.",
+      "valueType": "STRING"
+    },
+    "chatbot_title": {
+      "defaultValue": {
+        "value": "Ask Aaptha Elder Care"
+      },
+      "description": "Full-screen and compact chatbot title.",
+      "valueType": "STRING"
+    },
+    "chatbot_page_description": {
+      "defaultValue": {
+        "value": "Chat with the Aaptha Elder Care assistant."
+      },
+      "description": "Chatbot page metadata description.",
+      "valueType": "STRING"
+    },
+    "chatbot_welcome_description": {
+      "defaultValue": {
+        "value": "Welcome to Aaptha Elder Care. Ask a question and I’ll help you find the information you need."
+      },
+      "description": "Welcome message shown when a chat has no messages.",
+      "valueType": "STRING"
+    },
+    "chatbot_initial_questions": {
+      "defaultValue": {
+        "value": "[\"What can you help me with?\",\"Present the monthly performance graph.\",\"Use an available MCP tool to inspect the current context.\",\"Summarize the information I provide in a file.\"]"
+      },
+      "description": "JSON-encoded array of up to six suggested questions.",
+      "valueType": "STRING"
+    },
+    "dashboard_description": {
+      "defaultValue": {
+        "value": "Your account is signed in and ready. Review your profile and authentication details below."
+      },
+      "description": "Dashboard description used when organization_description is empty.",
+      "valueType": "STRING"
+    },
+    "profile_description": {
+      "defaultValue": {
+        "value": "Update your personal and contact details. Employee ID and Aadhaar are read-only."
+      },
+      "description": "Description shown on the profile page.",
+      "valueType": "STRING"
+    },
+    "profile_cache_ttl_hours": {
+      "defaultValue": {
+        "value": "6"
+      },
+      "description": "Hours to cache the signed-in user's profile in this browser tab; 0 disables caching.",
+      "valueType": "NUMBER"
+    },
+    "notifications_description": {
+      "defaultValue": {
+        "value": "Review new user access requests."
+      },
+      "description": "Description shown above registration notifications.",
+      "valueType": "STRING"
+    },
+    "notifications_page_description": {
+      "defaultValue": {
+        "value": "Review Aaptha Elder Care user access requests."
+      },
+      "description": "Registration notifications page metadata description.",
+      "valueType": "STRING"
+    },
+    "maps_description": {
+      "defaultValue": {
+        "value": ""
+      },
+      "description": "Maps page metadata description.",
+      "valueType": "STRING"
+    }
+  }
+}

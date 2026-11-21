@@ -163,14 +163,20 @@ export async function handleChatRequest(request: Request) {
             ? error.message
             : "Unable to read Ollama model configuration.",
       },
-      { status: 500 },
+      { status: 500 }
     )
   }
 
-  if (!modelConfiguration.defaultModel || modelConfiguration.models.length === 0) {
+  if (
+    !modelConfiguration.defaultModel ||
+    modelConfiguration.models.length === 0
+  ) {
     return Response.json(
-      { error: "Configure OLLAMA_MODELS or OLLAMA_MODEL before starting a chat." },
-      { status: 503 },
+      {
+        error:
+          "Configure OLLAMA_MODELS or OLLAMA_MODEL before starting a chat.",
+      },
+      { status: 503 }
     )
   }
 
@@ -178,7 +184,7 @@ export async function handleChatRequest(request: Request) {
   if (!modelConfiguration.models.some((model) => model.id === requestedModel)) {
     return Response.json(
       { error: "The requested Ollama model is not configured." },
-      { status: 400 },
+      { status: 400 }
     )
   }
 

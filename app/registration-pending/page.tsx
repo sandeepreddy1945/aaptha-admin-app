@@ -49,7 +49,7 @@ export default function RegistrationPendingPage() {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Unable to resubmit your request.",
+          : "Unable to resubmit your request."
       )
     } finally {
       setIsReapplying(false)
@@ -89,7 +89,7 @@ export default function RegistrationPendingPage() {
         window.location.assign(
           "hasRequiredRole" in payload && payload.hasRequiredRole === true
             ? "/dashboard"
-            : "/access-denied",
+            : "/access-denied"
         )
         return
       }
@@ -98,7 +98,7 @@ export default function RegistrationPendingPage() {
       setError(
         statusError instanceof Error
           ? statusError.message
-          : "Unable to check your approval status.",
+          : "Unable to check your approval status."
       )
     } finally {
       setIsChecking(false)
@@ -109,10 +109,14 @@ export default function RegistrationPendingPage() {
     <main className="flex min-h-svh items-center justify-center bg-muted/30 p-4">
       <section className="w-full max-w-lg space-y-6 rounded-xl border bg-card p-6 text-center shadow-sm">
         <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <span aria-hidden="true" className="text-xl">✓</span>
+          <span aria-hidden="true" className="text-xl">
+            ✓
+          </span>
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">{organizationFullName} access</h1>
+          <h1 className="text-2xl font-semibold">
+            {organizationFullName} access
+          </h1>
           <p className="text-sm text-muted-foreground">
             {isRejected
               ? "Your request was declined. You can ask the administrator to review it again."

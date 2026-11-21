@@ -18,7 +18,9 @@ export async function getUserProfileDocument(uid: string) {
   return getOrMigrateUserProfileDocument(authUser)
 }
 
-export async function getOrMigrateUserProfileDocument(authUser: UserRecord): Promise<{
+export async function getOrMigrateUserProfileDocument(
+  authUser: UserRecord
+): Promise<{
   emailId: string
   ref: DocumentReference
 }> {
@@ -54,16 +56,19 @@ export async function getOrMigrateUserProfileDocument(authUser: UserRecord): Pro
       key === "providers"
         ? Array.isArray(profile.providers) &&
           JSON.stringify(profile.providers) === JSON.stringify(value)
-        : profile[key] === value,
+        : profile[key] === value
     )
   const profileOwnerMismatch =
-    (typeof existingProfile.uid === "string" && existingProfile.uid !== authUser.uid) ||
+    (typeof existingProfile.uid === "string" &&
+      existingProfile.uid !== authUser.uid) ||
     (typeof existingProfile.uid !== "string" &&
       typeof existingProfile.emailId === "string" &&
       normalizeEmailId(existingProfile.emailId) !== emailId)
 
   if (profileOwnerMismatch) {
-    throw new Error("The user profile email key is already associated with another account.")
+    throw new Error(
+      "The user profile email key is already associated with another account."
+    )
   }
 
   const profileIsNormalized =
@@ -86,8 +91,11 @@ export async function getOrMigrateUserProfileDocument(authUser: UserRecord): Pro
     const currentProfile = profileSnapshot.data() ?? {}
     const queriedLegacySnapshot =
       !profileSnapshot.exists && !legacyUidSnapshot.exists
-        ? (await transaction.get(users.where("uid", "==", authUser.uid).limit(1)))
-            .docs[0]
+        ? (
+            await transaction.get(
+              users.where("uid", "==", authUser.uid).limit(1)
+            )
+          ).docs[0]
         : undefined
     const legacySnapshot = legacyUidSnapshot.exists
       ? legacyUidSnapshot
@@ -98,7 +106,8 @@ export async function getOrMigrateUserProfileDocument(authUser: UserRecord): Pro
     const legacyProfile = legacySnapshot?.data() ?? {}
 
     if (
-      (typeof currentProfile.uid === "string" && currentProfile.uid !== authUser.uid) ||
+      (typeof currentProfile.uid === "string" &&
+        currentProfile.uid !== authUser.uid) ||
       (typeof currentProfile.uid !== "string" &&
         typeof currentProfile.emailId === "string" &&
         normalizeEmailId(currentProfile.emailId) !== emailId) ||
@@ -106,7 +115,9 @@ export async function getOrMigrateUserProfileDocument(authUser: UserRecord): Pro
         typeof legacyProfile.uid === "string" &&
         legacyProfile.uid !== authUser.uid)
     ) {
-      throw new Error("The user profile email key is already associated with another account.")
+      throw new Error(
+        "The user profile email key is already associated with another account."
+      )
     }
 
     if (!profileSnapshot.exists && !legacySnapshot) return
@@ -144,7 +155,9 @@ export async function getOrMigrateUserProfileDocument(authUser: UserRecord): Pro
       ...currentProfile,
       ...identity,
       accountStatus:
-        currentProfile.accountStatus ?? legacyProfile.accountStatus ?? "approved",
+        currentProfile.accountStatus ??
+        legacyProfile.accountStatus ??
+        "approved",
       employeeId,
       aadhaarNumber,
       createdAt:

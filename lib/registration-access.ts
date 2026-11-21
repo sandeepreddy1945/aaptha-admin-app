@@ -18,9 +18,20 @@ export type AccountAccess = {
 }
 
 export function parseUserRoles(value: unknown) {
-  if (typeof value !== "string") return []
+  const values = Array.isArray(value)
+    ? value
+    : typeof value === "string"
+      ? value.split(",")
+      : []
 
-  return [...new Set(value.split(",").map((role) => role.trim().toLowerCase()).filter(Boolean))]
+  return [
+    ...new Set(
+      values
+        .filter((role): role is string => typeof role === "string")
+        .map((role) => role.trim().toLowerCase())
+        .filter(Boolean)
+    ),
+  ]
 }
 
 export async function getSessionUid(request: NextRequest) {
@@ -30,7 +41,7 @@ export async function getSessionUid(request: NextRequest) {
   try {
     const session = await getFirebaseAdminAuth().verifySessionCookie(
       sessionCookie,
-      true,
+      true
     )
     return session.uid
   } catch {
@@ -46,7 +57,8 @@ export async function getAccountAccess(uid: string): Promise<AccountAccess> {
   ])
 
   const profile = profileSnapshot.data()
-  const roles = parseUserRoles(profile?.roles)
+  const roleValue = profile?.role !== undefined ? profile.role : profile?.roles
+  const roles = parseUserRoles(roleValue)
   const isAdmin = roles.includes("admin")
   const isHr = roles.includes("hr")
   const requestStatus = requestSnapshot.data()?.status

@@ -433,9 +433,7 @@ export function ChatComposer({
                     : undefined
                 }
                 disabled={isBusy}
-                onClick={() =>
-                  onDeveloperToolsChange(!developerToolsEnabled)
-                }
+                onClick={() => onDeveloperToolsChange(!developerToolsEnabled)}
                 size="icon-sm"
                 title={
                   developerToolsEnabled
@@ -464,7 +462,9 @@ export function ChatComposer({
                 >
                   <SelectTrigger
                     aria-label="Select Ollama model"
-                    className={compact ? "max-w-36 min-w-24" : "max-w-52 min-w-36"}
+                    className={
+                      compact ? "max-w-36 min-w-24" : "max-w-52 min-w-36"
+                    }
                     size="sm"
                   >
                     <SelectValue placeholder="Select model" />
@@ -527,7 +527,8 @@ export function ChatComposer({
           ) : (
             !compact && (
               <span>
-                Local model · Developer tools {developerToolsEnabled ? "on" : "off"}
+                Local model · Developer tools{" "}
+                {developerToolsEnabled ? "on" : "off"}
               </span>
             )
           )}

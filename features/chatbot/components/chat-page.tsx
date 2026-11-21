@@ -59,16 +59,14 @@ function ChatSession({
   compact: boolean
   onClose?: () => void
 }) {
-  const {
-    chatbotInitialQuestions,
-    chatbotTitle,
-    chatbotWelcomeDescription,
-  } = useRemoteConfig()
+  const { chatbotInitialQuestions, chatbotTitle, chatbotWelcomeDescription } =
+    useRemoteConfig()
   const [models, setModels] = useState<ChatModelOption[]>([])
   const [selectedModel, setSelectedModel] = useState("")
   const [developerToolsEnabled, setDeveloperToolsEnabled] = useState(true)
-  const [modelConfigurationError, setModelConfigurationError] =
-    useState<string | null>(null)
+  const [modelConfigurationError, setModelConfigurationError] = useState<
+    string | null
+  >(null)
   const [isLoadingModels, setIsLoadingModels] = useState(true)
   const [isPersistenceReady, setIsPersistenceReady] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -97,7 +95,9 @@ function ChatSession({
         const payload: unknown = await response.json().catch(() => null)
         if (!response.ok) {
           const message =
-            typeof payload === "object" && payload !== null && "error" in payload
+            typeof payload === "object" &&
+            payload !== null &&
+            "error" in payload
               ? String(payload.error)
               : "Unable to load Ollama model configuration."
           throw new Error(message)
@@ -112,12 +112,12 @@ function ChatSession({
           configuration.models.length === 0 ||
           !configuration.defaultModel ||
           !configuration.models.some(
-            (model) => model.id === configuration.defaultModel,
+            (model) => model.id === configuration.defaultModel
           )
         ) {
           setModelConfigurationError(
             configuration.error ??
-              "No Ollama models are configured. Set OLLAMA_MODELS or OLLAMA_MODEL in .env.local.",
+              "No Ollama models are configured. Set OLLAMA_MODELS or OLLAMA_MODEL in .env.local."
           )
           return
         }
@@ -131,7 +131,7 @@ function ChatSession({
           setModelConfigurationError(
             error instanceof Error
               ? error.message
-              : "Unable to load Ollama model configuration.",
+              : "Unable to load Ollama model configuration."
           )
         }
       })
@@ -253,17 +253,21 @@ function ChatSession({
     }
 
     if (files.length > 0) {
-      await sendMessage({ files }, { body: { model: selectedModel, developerToolsEnabled } })
+      await sendMessage(
+        { files },
+        { body: { model: selectedModel, developerToolsEnabled } }
+      )
       return
     }
 
-    await sendMessage({ text: text.trim() }, { body: { model: selectedModel, developerToolsEnabled } })
+    await sendMessage(
+      { text: text.trim() },
+      { body: { model: selectedModel, developerToolsEnabled } }
+    )
   }
 
   return (
-    <main
-      className={`flex ${compact ? "h-full min-h-0" : "h-svh min-h-svh"} flex-col bg-background`}
-    >
+    <main className="flex h-full min-h-0 flex-col bg-background">
       <header className="flex shrink-0 items-center justify-between border-b px-4 py-3 md:px-6">
         <div className="flex min-w-0 items-center gap-3">
           {compact ? (
@@ -281,11 +285,16 @@ function ChatSession({
             </Link>
           )}
           <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold sm:text-base" id="aaptha-chat-title">
+            <h1
+              className="truncate text-sm font-semibold sm:text-base"
+              id="aaptha-chat-title"
+            >
               {chatbotTitle}
             </h1>
             <p className="truncate text-xs text-muted-foreground">
-              {modelName ? `${modelName} · Ollama` : "Ollama model not configured"}
+              {modelName
+                ? `${modelName} · Ollama`
+                : "Ollama model not configured"}
             </p>
           </div>
         </div>
@@ -420,8 +429,8 @@ function ChatSession({
         {!compact && !isLoadingModels && !modelConfigurationError && (
           <p className="mx-auto mt-1 flex max-w-4xl items-center justify-center gap-1 text-center text-[11px] text-muted-foreground">
             <BotIcon className="size-3" />
-            Responses are generated locally by Ollama. Reasoning is shown when the
-            model provides it.
+            Responses are generated locally by Ollama. Reasoning is shown when
+            the model provides it.
           </p>
         )}
       </div>

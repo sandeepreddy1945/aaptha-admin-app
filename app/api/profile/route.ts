@@ -46,7 +46,10 @@ function maskAadhaar(value: unknown) {
 export async function GET(request: NextRequest) {
   const uid = await getApprovedSessionUid(request)
   if (!uid) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 })
+    return NextResponse.json(
+      { error: "Authentication required." },
+      { status: 401 }
+    )
   }
 
   try {
@@ -71,7 +74,7 @@ export async function GET(request: NextRequest) {
     console.error("Unable to load the signed-in user's profile.", error)
     return NextResponse.json(
       { error: "Unable to load your profile." },
-      { status: 500 },
+      { status: 500 }
     )
   }
 }
@@ -79,21 +82,27 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const uid = await getApprovedSessionUid(request)
   if (!uid) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 })
+    return NextResponse.json(
+      { error: "Authentication required." },
+      { status: 401 }
+    )
   }
 
   let payload: unknown
   try {
     payload = await request.json()
   } catch {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 })
+    return NextResponse.json(
+      { error: "Invalid request body." },
+      { status: 400 }
+    )
   }
 
   const parsed = editableProfileSchema.safeParse(payload)
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Please correct the invalid profile fields." },
-      { status: 400 },
+      { status: 400 }
     )
   }
 
@@ -117,7 +126,9 @@ export async function PATCH(request: NextRequest) {
           emailVerified: authUser.emailVerified,
           phoneNumber: authUser.phoneNumber ?? "",
           photoURL: authUser.photoURL ?? "",
-          providers: authUser.providerData.map((provider) => provider.providerId),
+          providers: authUser.providerData.map(
+            (provider) => provider.providerId
+          ),
           accountStatus: currentProfile.accountStatus ?? "approved",
           employeeId:
             typeof currentProfile.employeeId === "string"
@@ -132,7 +143,7 @@ export async function PATCH(request: NextRequest) {
           createdAt: currentProfile.createdAt ?? FieldValue.serverTimestamp(),
           updatedAt: FieldValue.serverTimestamp(),
         },
-        { merge: true },
+        { merge: true }
       )
     })
 
@@ -141,7 +152,7 @@ export async function PATCH(request: NextRequest) {
     console.error("Unable to save the signed-in user's profile.", error)
     return NextResponse.json(
       { error: "Unable to save your profile." },
-      { status: 500 },
+      { status: 500 }
     )
   }
 }

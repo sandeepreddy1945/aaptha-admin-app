@@ -88,7 +88,7 @@ export function LoginForm(props: React.ComponentProps<"div">) {
       const credential = await createUserWithEmailAndPassword(
         getFirebaseAuth(),
         email,
-        password,
+        password
       )
       await updateProfile(credential.user, { displayName: displayName.trim() })
       const idToken = await credential.user.getIdToken(true)
@@ -98,7 +98,9 @@ export function LoginForm(props: React.ComponentProps<"div">) {
         body: JSON.stringify({ idToken }),
       })
       if (!sessionResponse.ok) {
-        throw new Error("Unable to establish a secure session for this request.")
+        throw new Error(
+          "Unable to establish a secure session for this request."
+        )
       }
 
       const requestResponse = await fetch("/api/auth/registration-request", {
@@ -154,7 +156,9 @@ export function LoginForm(props: React.ComponentProps<"div">) {
         <CardContent className="grid p-0 md:grid-cols-2">
           <form
             className="p-6 md:p-8"
-            onSubmit={isRegistering ? handleEmailRegistration : handleEmailLogin}
+            onSubmit={
+              isRegistering ? handleEmailRegistration : handleEmailLogin
+            }
           >
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
@@ -167,7 +171,7 @@ export function LoginForm(props: React.ComponentProps<"div">) {
                     : "Sign in to your account"}
                 </p>
                 {organizationDescription && (
-                  <p className="text-balance text-sm text-muted-foreground">
+                  <p className="text-sm text-balance text-muted-foreground">
                     {organizationDescription}
                   </p>
                 )}
@@ -208,7 +212,9 @@ export function LoginForm(props: React.ComponentProps<"div">) {
                   </button>
                 </div>
                 <Input
-                  autoComplete={isRegistering ? "new-password" : "current-password"}
+                  autoComplete={
+                    isRegistering ? "new-password" : "current-password"
+                  }
                   id="password"
                   minLength={isRegistering ? 6 : undefined}
                   onChange={(event) => setPassword(event.target.value)}
@@ -277,7 +283,9 @@ export function LoginForm(props: React.ComponentProps<"div">) {
                 </Button>
               </Field>
               <FieldDescription className="text-center">
-                {isRegistering ? "Already have an account?" : "Need an account?"}{" "}
+                {isRegistering
+                  ? "Already have an account?"
+                  : "Need an account?"}{" "}
                 <button
                   className="underline underline-offset-4 hover:text-foreground"
                   onClick={() => {
@@ -294,7 +302,7 @@ export function LoginForm(props: React.ComponentProps<"div">) {
           </form>
           <div className="relative hidden bg-muted md:block">
             <img
-              src="/placeholder.svg"
+              src="/aaptha-eldercare-img.jpg"
               alt=""
               className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
             />

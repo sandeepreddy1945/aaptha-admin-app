@@ -6,16 +6,25 @@ import { getFirebaseAdminApp, getFirebaseAdminAuth } from "@/lib/firebase-admin"
 import { getAdminSessionUid } from "@/lib/registration-access"
 import { getOrMigrateUserProfileDocument } from "@/lib/user-profile"
 
-const uidSchema = z.string().trim().min(1).max(128).regex(/^[A-Za-z0-9:_-]+$/)
+const uidSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(128)
+  .regex(/^[A-Za-z0-9:_-]+$/)
 const actionSchema = z.discriminatedUnion("action", [
   z
     .object({
       action: z.literal("approve"),
       uid: uidSchema,
-      roles: z.array(z.enum(["admin", "hr"])).min(1).max(2).refine(
-        (roles) => new Set(roles).size === roles.length,
-        "Roles must be unique.",
-      ),
+      roles: z
+        .array(z.enum(["admin", "hr"]))
+        .min(1)
+        .max(2)
+        .refine(
+          (roles) => new Set(roles).size === roles.length,
+          "Roles must be unique."
+        ),
     })
     .strict(),
   z.object({ action: z.literal("reject"), uid: uidSchema }).strict(),
@@ -24,7 +33,7 @@ const actionSchema = z.discriminatedUnion("action", [
 class RequestActionError extends Error {
   constructor(
     message: string,
-    readonly status: number,
+    readonly status: number
   ) {
     super(message)
   }
@@ -46,7 +55,10 @@ function toIsoString(value: unknown) {
 export async function GET(request: NextRequest) {
   const adminUid = await getAdminSessionUid(request)
   if (!adminUid) {
-    return NextResponse.json({ error: "Administrator access required." }, { status: 403 })
+    return NextResponse.json(
+      { error: "Administrator access required." },
+      { status: 403 }
+    )
   }
 
   try {
@@ -65,13 +77,17 @@ export async function GET(request: NextRequest) {
         const data = document.data()
         return {
           uid: document.id,
-          displayName: typeof data.displayName === "string" ? data.displayName : "",
+          displayName:
+            typeof data.displayName === "string" ? data.displayName : "",
           email: typeof data.email === "string" ? data.email : "",
           emailVerified: data.emailVerified === true,
-          phoneNumber: typeof data.phoneNumber === "string" ? data.phoneNumber : "",
+          phoneNumber:
+            typeof data.phoneNumber === "string" ? data.phoneNumber : "",
           photoURL: typeof data.photoURL === "string" ? data.photoURL : "",
           providers: Array.isArray(data.providers)
-            ? data.providers.filter((provider): provider is string => typeof provider === "string")
+            ? data.providers.filter(
+                (provider): provider is string => typeof provider === "string"
+              )
             : [],
           requestedAt: toIsoString(data.requestedAt),
         }
@@ -83,7 +99,7 @@ export async function GET(request: NextRequest) {
     console.error("Unable to load registration requests.", error)
     return NextResponse.json(
       { error: "Unable to load registration notifications." },
-      { status: 500 },
+      { status: 500 }
     )
   }
 }
@@ -91,19 +107,28 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const adminUid = await getAdminSessionUid(request)
   if (!adminUid) {
-    return NextResponse.json({ error: "Administrator access required." }, { status: 403 })
+    return NextResponse.json(
+      { error: "Administrator access required." },
+      { status: 403 }
+    )
   }
 
   let payload: unknown
   try {
     payload = await request.json()
   } catch {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 })
+    return NextResponse.json(
+      { error: "Invalid request body." },
+      { status: 400 }
+    )
   }
 
   const parsed = actionSchema.safeParse(payload)
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid registration action." }, { status: 400 })
+    return NextResponse.json(
+      { error: "Invalid registration action." },
+      { status: 400 }
+    )
   }
 
   const { action, uid } = parsed.data
@@ -118,7 +143,9 @@ export async function POST(request: NextRequest) {
       await getOrMigrateUserProfileDocument(authUser)
     const employeePrefix = process.env.EMPLOYEE_ID_PREFIX?.trim() || "EMP"
     if (!/^[A-Za-z0-9][A-Za-z0-9-]{0,9}$/.test(employeePrefix)) {
-      throw new Error("EMPLOYEE_ID_PREFIX must contain 1-10 letters, digits, or hyphens.")
+      throw new Error(
+        "EMPLOYEE_ID_PREFIX must contain 1-10 letters, digits, or hyphens."
+      )
     }
 
     const result = await database.runTransaction(async (transaction) => {
@@ -126,7 +153,9 @@ export async function POST(request: NextRequest) {
         await Promise.all([
           transaction.get(registrationRef),
           transaction.get(profileRef),
-          action === "approve" ? transaction.get(counterRef) : Promise.resolve(null),
+          action === "approve"
+            ? transaction.get(counterRef)
+            : Promise.resolve(null),
         ])
 
       if (!registrationSnapshot.exists) {
@@ -142,7 +171,10 @@ export async function POST(request: NextRequest) {
 
       if (action === "approve") {
         if (status === "rejected") {
-          throw new RequestActionError("This request was rejected and must be resubmitted first.", 409)
+          throw new RequestActionError(
+            "This request was rejected and must be resubmitted first.",
+            409
+          )
         }
 
         if (status === "approved") {
@@ -176,7 +208,10 @@ export async function POST(request: NextRequest) {
             const [assignmentSnapshot, existingUsers] = await Promise.all([
               transaction.get(assignmentRef),
               transaction.get(
-                database.collection("users").where("employeeId", "==", candidate).limit(1),
+                database
+                  .collection("users")
+                  .where("employeeId", "==", candidate)
+                  .limit(1)
               ),
             ])
 
@@ -197,7 +232,10 @@ export async function POST(request: NextRequest) {
           })
         }
 
-        const nameParts = (authUser.displayName ?? "").trim().split(/\s+/).filter(Boolean)
+        const nameParts = (authUser.displayName ?? "")
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean)
         transaction.set(
           profileRef,
           {
@@ -206,7 +244,7 @@ export async function POST(request: NextRequest) {
             email: authUser.email ?? emailId,
             accountStatus: "approved",
             employeeId,
-            roles: roles.join(","),
+            role: roles.join(","),
             aadhaarNumber:
               typeof profile.aadhaarNumber === "string"
                 ? profile.aadhaarNumber
@@ -216,12 +254,14 @@ export async function POST(request: NextRequest) {
             emailVerified: authUser.emailVerified,
             phoneNumber: authUser.phoneNumber ?? "",
             photoURL: authUser.photoURL ?? "",
-            providers: authUser.providerData.map((provider) => provider.providerId),
+            providers: authUser.providerData.map(
+              (provider) => provider.providerId
+            ),
             displayName: authUser.displayName ?? "",
             firstName:
               typeof profile.firstName === "string" && profile.firstName
                 ? profile.firstName
-                : nameParts[0] ?? "",
+                : (nameParts[0] ?? ""),
             lastName:
               typeof profile.lastName === "string" && profile.lastName
                 ? profile.lastName
@@ -231,7 +271,7 @@ export async function POST(request: NextRequest) {
             approvedAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
           },
-          { merge: true },
+          { merge: true }
         )
         transaction.update(registrationRef, {
           status: "approved",
@@ -265,11 +305,13 @@ export async function POST(request: NextRequest) {
             emailVerified: authUser.emailVerified,
             phoneNumber: authUser.phoneNumber ?? "",
             photoURL: authUser.photoURL ?? "",
-            providers: authUser.providerData.map((provider) => provider.providerId),
+            providers: authUser.providerData.map(
+              (provider) => provider.providerId
+            ),
             displayName: authUser.displayName ?? "",
             updatedAt: FieldValue.serverTimestamp(),
           },
-          { merge: true },
+          { merge: true }
         )
       }
 
@@ -279,16 +321,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result)
   } catch (error) {
     if (error instanceof RequestActionError) {
-      return NextResponse.json({ error: error.message }, { status: error.status })
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      )
     }
-    if (typeof error === "object" && error !== null && "code" in error && error.code === "auth/user-not-found") {
-      return NextResponse.json({ error: "Firebase account not found." }, { status: 404 })
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "auth/user-not-found"
+    ) {
+      return NextResponse.json(
+        { error: "Firebase account not found." },
+        { status: 404 }
+      )
     }
 
     console.error("Unable to update registration request.", error)
     return NextResponse.json(
       { error: "Unable to update the registration request." },
-      { status: 500 },
+      { status: 500 }
     )
   }
 }

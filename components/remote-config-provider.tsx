@@ -32,12 +32,17 @@ const REMOTE_CONFIG_DEFAULTS = {
   organization_description: "",
   chatbot_title: "Ask Aaptha Elder Care",
   chatbot_page_description: "Chat with the Aaptha Elder Care assistant.",
-  chatbot_welcome_description: "Welcome to Aaptha Elder Care. Ask a question and I’ll help you find the information you need.",
+  chatbot_welcome_description:
+    "Welcome to Aaptha Elder Care. Ask a question and I’ll help you find the information you need.",
   chatbot_initial_questions: JSON.stringify(DEFAULT_QUESTIONS),
-  dashboard_description: "Your account is signed in and ready. Review your profile and authentication details below.",
-  profile_description: "Update your personal and contact details. Employee ID and Aadhaar are read-only.",
+  dashboard_description:
+    "Your account is signed in and ready. Review your profile and authentication details below.",
+  profile_description:
+    "Update your personal and contact details. Employee ID and Aadhaar are read-only.",
+  profile_cache_ttl_hours: "6",
   notifications_description: "Review new user access requests.",
-  notifications_page_description: "Review Aaptha Elder Care user access requests.",
+  notifications_page_description:
+    "Review Aaptha Elder Care user access requests.",
   maps_description: "",
 } as const
 
@@ -52,6 +57,7 @@ export type RemoteAppConfig = {
   chatbotInitialQuestions: string[]
   dashboardDescription: string
   profileDescription: string
+  profileCacheTtlHours: number
   notificationsDescription: string
   notificationsPageDescription: string
   mapsDescription: string
@@ -68,6 +74,7 @@ const DEFAULT_APP_CONFIG: RemoteAppConfig = {
   chatbotInitialQuestions: [...DEFAULT_QUESTIONS],
   dashboardDescription: REMOTE_CONFIG_DEFAULTS.dashboard_description,
   profileDescription: REMOTE_CONFIG_DEFAULTS.profile_description,
+  profileCacheTtlHours: 6,
   notificationsDescription: REMOTE_CONFIG_DEFAULTS.notifications_description,
   notificationsPageDescription:
     REMOTE_CONFIG_DEFAULTS.notifications_page_description,
@@ -93,6 +100,11 @@ function parseQuestions(value: string) {
   }
 }
 
+function parseProfileCacheTtlHours(value: string) {
+  const hours = Number(value)
+  return Number.isFinite(hours) && hours >= 0 ? Math.min(hours, 24 * 365) : 6
+}
+
 function readRemoteAppConfig(): RemoteAppConfig {
   const remoteConfig = getRemoteConfig(getFirebaseApp())
   const getText = (key: keyof typeof REMOTE_CONFIG_DEFAULTS) =>
@@ -111,9 +123,14 @@ function readRemoteAppConfig(): RemoteAppConfig {
     chatbotTitle: getText("chatbot_title"),
     chatbotPageDescription: getText("chatbot_page_description"),
     chatbotWelcomeDescription: getText("chatbot_welcome_description"),
-    chatbotInitialQuestions: parseQuestions(getText("chatbot_initial_questions")),
+    chatbotInitialQuestions: parseQuestions(
+      getText("chatbot_initial_questions")
+    ),
     dashboardDescription: getText("dashboard_description"),
     profileDescription: getText("profile_description"),
+    profileCacheTtlHours: parseProfileCacheTtlHours(
+      getText("profile_cache_ttl_hours")
+    ),
     notificationsDescription: getText("notifications_description"),
     notificationsPageDescription: getText("notifications_page_description"),
     mapsDescription: getText("maps_description"),
@@ -121,13 +138,22 @@ function readRemoteAppConfig(): RemoteAppConfig {
 }
 
 function getPageMetadata(pathname: string, config: RemoteAppConfig) {
-  if (pathname === "/chat") {
-    return { title: config.chatbotTitle, description: config.chatbotPageDescription }
+  if (pathname === "/chat" || pathname === "/dashboard/chat") {
+    return {
+      title: config.chatbotTitle,
+      description: config.chatbotPageDescription,
+    }
   }
-  if (pathname === "/profile") {
-    return { title: `Profile · ${config.organizationName}`, description: config.profileDescription }
+  if (pathname === "/profile" || pathname === "/dashboard/profile") {
+    return {
+      title: `Profile · ${config.organizationName}`,
+      description: config.profileDescription,
+    }
   }
-  if (pathname === "/notifications") {
+  if (
+    pathname === "/notifications" ||
+    pathname === "/dashboard/notifications"
+  ) {
     return {
       title:
         config.organizationName === "Aaptha"
@@ -137,7 +163,10 @@ function getPageMetadata(pathname: string, config: RemoteAppConfig) {
     }
   }
   if (pathname === "/maps") {
-    return { title: `Maps · ${config.organizationName}`, description: config.mapsDescription }
+    return {
+      title: `Maps · ${config.organizationName}`,
+      description: config.mapsDescription,
+    }
   }
   if (pathname === "/login") {
     return {
@@ -200,13 +229,13 @@ export function RemoteConfigProvider({ children }: { children: ReactNode }) {
 
   const pageMetadata = useMemo(
     () => getPageMetadata(pathname, config),
-    [config, pathname],
+    [config, pathname]
   )
 
   useEffect(() => {
     document.title = pageMetadata.title
     let description = document.querySelector<HTMLMetaElement>(
-      'meta[name="description"]',
+      'meta[name="description"]'
     )
     if (!description) {
       description = document.createElement("meta")

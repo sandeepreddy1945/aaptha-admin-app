@@ -14,7 +14,9 @@ export function ChatbotLauncher() {
   const [isOpen, setIsOpen] = useState(false)
   const [hasOpened, setHasOpened] = useState(false)
 
-  if (!user || pathname === "/chat") return null
+  if (!user || pathname === "/chat" || pathname.startsWith("/dashboard/chat")) {
+    return null
+  }
 
   const toggleChat = () => {
     if (!isOpen) setHasOpened(true)

@@ -61,7 +61,8 @@ let persistentStoragePromise: Promise<void> | undefined
 const requestPersistentStorage = () => {
   if (!persistentStoragePromise) {
     persistentStoragePromise = (async () => {
-      if (typeof navigator === "undefined" || !navigator.storage?.persist) return
+      if (typeof navigator === "undefined" || !navigator.storage?.persist)
+        return
 
       try {
         await navigator.storage.persist()
@@ -78,7 +79,7 @@ const getDatabase = async (userId: string): Promise<ChatDatabase> => {
   let databasePromise = databasePromises.get(userId)
   if (!databasePromise) {
     const databaseName = `aisdk_chat_${Array.from(userId, (character) =>
-      character.codePointAt(0)?.toString(16),
+      character.codePointAt(0)?.toString(16)
     ).join("_")}`
     databasePromise = (async () => {
       await requestPersistentStorage()
@@ -184,32 +185,32 @@ export const getConversationTitle = (messages: UIMessage[]) => {
 }
 
 export const loadLatestConversation = async (
-  userId: string,
+  userId: string
 ): Promise<LoadedConversation | null> => {
   if (!userId) return null
 
   try {
     const database = await getDatabase(userId)
-      const [conversation] = await database.conversations
-        .find()
-        .sort({ updatedAt: "desc" })
-        .limit(1)
-        .exec()
+    const [conversation] = await database.conversations
+      .find()
+      .sort({ updatedAt: "desc" })
+      .limit(1)
+      .exec()
 
-      if (!conversation) {
-        return null
-      }
-
-      const { messages: storedMessages, ...metadata } = conversation.toJSON()
-
-      return {
-        ...metadata,
-        messages: storedMessages as unknown as UIMessage[],
-      }
-    } catch {
+    if (!conversation) {
       return null
     }
+
+    const { messages: storedMessages, ...metadata } = conversation.toJSON()
+
+    return {
+      ...metadata,
+      messages: storedMessages as unknown as UIMessage[],
+    }
+  } catch {
+    return null
   }
+}
 
 export const saveConversation = async ({
   userId,

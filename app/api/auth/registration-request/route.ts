@@ -15,7 +15,10 @@ const actionSchema = z
 export async function POST(request: NextRequest) {
   const uid = await getSessionUid(request)
   if (!uid) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 })
+    return NextResponse.json(
+      { error: "Authentication required." },
+      { status: 401 }
+    )
   }
 
   let payload: unknown
@@ -27,7 +30,10 @@ export async function POST(request: NextRequest) {
 
   const parsed = actionSchema.safeParse(payload)
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid registration request." }, { status: 400 })
+    return NextResponse.json(
+      { error: "Invalid registration request." },
+      { status: 400 }
+    )
   }
 
   try {
@@ -81,7 +87,7 @@ export async function POST(request: NextRequest) {
               rejectedAt: FieldValue.delete(),
               rejectedBy: FieldValue.delete(),
             },
-            { merge: true },
+            { merge: true }
           )
           transaction.set(
             profileRef,
@@ -90,7 +96,7 @@ export async function POST(request: NextRequest) {
               accountStatus: "pending",
               updatedAt: FieldValue.serverTimestamp(),
             },
-            { merge: true },
+            { merge: true }
           )
           return "pending" as const
         }
@@ -99,7 +105,7 @@ export async function POST(request: NextRequest) {
           transaction.set(
             registrationRef,
             { ...identity, updatedAt: FieldValue.serverTimestamp() },
-            { merge: true },
+            { merge: true }
           )
         }
         transaction.set(
@@ -109,13 +115,17 @@ export async function POST(request: NextRequest) {
             accountStatus: currentStatus,
             updatedAt: FieldValue.serverTimestamp(),
           },
-          { merge: true },
+          { merge: true }
         )
         return currentStatus
       }
 
       const profileStatus = profile?.accountStatus
-      if (profileSnapshot.exists && profileStatus !== "pending" && profileStatus !== "rejected") {
+      if (
+        profileSnapshot.exists &&
+        profileStatus !== "pending" &&
+        profileStatus !== "rejected"
+      ) {
         transaction.set(
           profileRef,
           {
@@ -123,7 +133,7 @@ export async function POST(request: NextRequest) {
             accountStatus: "approved",
             updatedAt: FieldValue.serverTimestamp(),
           },
-          { merge: true },
+          { merge: true }
         )
         return "approved" as const
       }
@@ -151,11 +161,12 @@ export async function POST(request: NextRequest) {
               : typeof profile?.aadharNumber === "string"
                 ? profile.aadharNumber
                 : "",
-          employeeId: typeof profile?.employeeId === "string" ? profile.employeeId : "",
+          employeeId:
+            typeof profile?.employeeId === "string" ? profile.employeeId : "",
           createdAt: profile?.createdAt ?? FieldValue.serverTimestamp(),
           updatedAt: FieldValue.serverTimestamp(),
         },
-        { merge: true },
+        { merge: true }
       )
       return "pending" as const
     })
@@ -171,7 +182,7 @@ export async function POST(request: NextRequest) {
     console.error("Unable to register the Firebase user request.", error)
     return NextResponse.json(
       { error: "Unable to load or create your access request." },
-      { status: 500 },
+      { status: 500 }
     )
   }
 }

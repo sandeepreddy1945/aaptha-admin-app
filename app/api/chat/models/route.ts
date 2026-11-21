@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   if (!uid) {
     return NextResponse.json(
       { error: "Account approval is required to use chat." },
-      { status: 403 },
+      { status: 403 }
     )
   }
 
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
             ? error.message
             : "Unable to read Ollama model configuration.",
       },
-      { status: 500 },
+      { status: 500 }
     )
   }
 }
